@@ -44,6 +44,25 @@ class LinkedList:
         new_node.next = self.head
         self.head = new_node
 
+    def bisect(self, index) -> tuple["LinkedList", "LinkedList"]:
+        position = 0
+        current_node = self.head
+        previous_node = None  # to account for index = 1
+        second_list = LinkedList()
+
+        while current_node:
+            if position == index:
+                if previous_node is None:
+                    second_list.head = current_node
+                    self.head = None
+                else:
+                    previous_node.next = None
+                    second_list.head = current_node
+                return (self, second_list)
+            previous_node = current_node
+            current_node = current_node.next
+            position += 1
+
 
 class Node:
     """Each node should contain data and a reference to the next node at a minimum."""
