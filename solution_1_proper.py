@@ -33,6 +33,12 @@ class LinkedList:
     def __str__(self):
         pass
 
+    def __iter__(self):
+        current = self.head
+        while current:
+            yield current.data
+            current = current.next
+
     def insert_at_beginning(self, data) -> None:
         new_node = Node(data)
         new_node.next = self.head
