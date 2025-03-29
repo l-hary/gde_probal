@@ -44,11 +44,21 @@ def main() -> None:
     }
     validate_input(string_to_solve, number_map, operator_map)
 
-    original_ll = LinkedList()
+    original_ll = DoublyLinkedList()
     for i in string_to_solve:
         original_ll.append(i)
 
     operators = parse_for_operators(original_ll, operator_map)
+
+    print(operators)
+
+    original_ll.recursive_reverse()
+    for i in original_ll:
+        print(i.data)
+    print("\n")
+    original_ll.iterative_reverse()
+    for i in original_ll:
+        print(i.data)
 
 
 def validate_input(
@@ -56,14 +66,14 @@ def validate_input(
     number_map: dict,
     operator_map: dict,
 ):
-    for index, char in enumerate(data):
+    for char in data:
         if char not in number_map and char not in operator_map:
             raise ValueError("Character is not a number or operator. Exiting program.")
 
 
 # ? could be done during the validate phase, to only iterate over the data once
 # ? counterargument: separation of concerns, clean code
-def parse_for_operators(data: "LinkedList", operator_map: dict) -> dict:
+def parse_for_operators(data: "DoublyLinkedList", operator_map: dict) -> dict:
     operators = {}
     node: "Node"
     for index, node in enumerate(data):
@@ -72,7 +82,7 @@ def parse_for_operators(data: "LinkedList", operator_map: dict) -> dict:
     return operators
 
 
-class LinkedList:
+class DoublyLinkedList:
     # ? use setters instead of direct assignment ?
 
     def __init__(self, head: "Node" = None):
@@ -88,19 +98,26 @@ class LinkedList:
 
     def push(self, data: object) -> None:
         new_node = Node(data)
-        new_node.set_next_node(self.head)
+        new_node.next_node = self.head
+        new_node.previous_node = None
+
+        if self.head is None:
+            self.tail = new_node
+        else:
+            self.head.previous_node = new_node
         self.head = new_node
-        if self.tail is None:
-            self.tail = self.head
         self.length += 1
 
     def append(self, data: object) -> None:
         new_node = Node(data)
+
         if self.head is None:
+            new_node.previous_node = None
             self.head = new_node
             self.tail = new_node
         else:
-            self.tail.set_next_node(new_node)
+            new_node.previous_node = self.tail
+            self.tail.next_node = new_node
             self.tail = new_node
         self.length += 1
 
@@ -110,18 +127,21 @@ class LinkedList:
             # ? raise ValueError instead?
             return
 
-        def _recursive_helper(current_node: "Node", previous_node: "Node"):
-            if current_node.next_node is None:  # base case, end of list
+        def _recursive_helper(current_node: "Node"):
+
+            current_node.next_node, current_node.previous_node = (
+                current_node.previous_node,
+                current_node.next_node,
+            )
+
+            if current_node.previous_node is None:  # next_node before swappping
+                self.tail = self.head
                 self.head = current_node
-                current_node.set_next_node(previous_node)
                 return
 
-            next_node = current_node.next_node  # store the original next node
-            current_node.set_next_node(previous_node)  # reverses link
+            _recursive_helper(current_node.previous_node)  # next_node before swapping
 
-            _recursive_helper(current_node=next_node, previous_node=current_node)
-
-        _recursive_helper(self.head, None)
+        _recursive_helper(self.head)
 
     def iterative_reverse(self):
         if self.head is None:
@@ -129,23 +149,22 @@ class LinkedList:
             # ? raise ValuError instead?
             return
 
-        previous_node = None
         current_node = self.head
 
         while current_node:
-            next_node = current_node.next_node  # store the original next node
-            current_node.next_node = previous_node
-            previous_node = current_node
-            current_node = next_node
+            next = current_node.next_node
+            current_node.next_node = current_node.previous_node
+            current_node.previous_node = next
+            current_node = next
+
+        self.head, self.tail = self.tail, self.head
 
 
 class Node:
     def __init__(self, data: object):
         self.data = data
         self.next_node = None
-
-    def set_next_node(self, next_node: "Node") -> None:
-        self.next_node = next_node
+        self.previous_node = None
 
 
 if __name__ == "__main__":
