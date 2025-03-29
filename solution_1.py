@@ -39,7 +39,7 @@ def main() -> None:
         "<": operator.lt,
         ">": operator.gt,
         "=": operator.eq,
-        # "<=": operator.le, # TODO, current solution looks at Node.next_node
+        # "<=": operator.le, # TODO
         # ">=": operator.ge,
     }
     validate_input(string_to_solve, number_map, operator_map)
@@ -50,15 +50,10 @@ def main() -> None:
 
     operators = parse_for_operators(original_ll, operator_map)
 
-    print(operators)
+    for key in operators.keys():
+        print(original_ll[key])
 
-    original_ll.recursive_reverse()
-    for i in original_ll:
-        print(i.data)
-    print("\n")
-    original_ll.iterative_reverse()
-    for i in original_ll:
-        print(i.data)
+    print(check_for_negatives(original_ll, operator_map, number_map))
 
 
 def validate_input(
@@ -69,6 +64,23 @@ def validate_input(
     for char in data:
         if char not in number_map and char not in operator_map:
             raise ValueError("Character is not a number or operator. Exiting program.")
+
+
+def check_for_negatives(
+    original_ll: "DoublyLinkedList", operators: dict, numbers: dict
+):
+    first_is_negative = False
+    second_is_negative = False
+
+    for node in original_ll:
+        if node.data == "-":
+            if node.previous_node == None and node.next_node.data in numbers:
+                first_is_negative = True
+            elif (
+                node.previous_node.data in operators and node.next_node.data in numbers
+            ):
+                second_is_negative = True
+    return first_is_negative, second_is_negative
 
 
 # ? could be done during the validate phase, to only iterate over the data once
@@ -95,6 +107,14 @@ class DoublyLinkedList:
         while current_node:
             yield current_node
             current_node = current_node.next_node
+
+    def __getitem__(self, index):
+        if index < 0 or index >= self.length:
+            raise IndexError("Index out of range.")
+        current = self.head
+        for _ in range(index):
+            current = current.next_node
+        return current.data
 
     def push(self, data: object) -> None:
         new_node = Node(data)
