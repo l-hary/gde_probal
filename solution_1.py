@@ -16,9 +16,9 @@ def main() -> None:
         """"Provide two numbers separated by a valid operator. The number can be negative.
     Valid operators: +, -, * , /, <, >, =, <=, >="""
     )
-    nums = input("Input goes here: ")
+    string_to_solve = input("Input goes here: ")
 
-    num_map = {
+    number_map = {
         "1": 1,
         "2": 2,
         "3": 3,
@@ -39,27 +39,75 @@ def main() -> None:
         "<": operator.lt,
         ">": operator.gt,
         "=": operator.eq,
-        # "<=": operator.le, #! FIX, current solution looks at Node.next_node
+        # "<=": operator.le, # TODO, current solution looks at Node.next_node
         # ">=": operator.ge,
     }
+    validate_input(string_to_solve, number_map, operator_map)
+
+    original_ll = LinkedList()
+    for i in string_to_solve:
+        original_ll.append(i)
+
+    operators = parse_for_operators(original_ll, operator_map)
+
+
+def validate_input(
+    data: str,
+    number_map: dict,
+    operator_map: dict,
+):
+    for index, char in enumerate(data):
+        if char not in number_map and char not in operator_map:
+            raise ValueError("Character is not a number or operator. Exiting program.")
+
+
+# ? could be done during the validate phase, to only iterate over the data once
+# ? counterargument: separation of concerns, clean code
+def parse_for_operators(data: "LinkedList", operator_map: dict) -> dict:
+    operators = {}
+    node: "Node"
+    for index, node in enumerate(data):
+        if node.data in operator_map:
+            operators[index] = node.data
+    return operators
 
 
 class LinkedList:
+    # ? use setters instead of direct assignment ?
 
     def __init__(self, head: "Node" = None):
         self.head = head
         self.length = 0 if head is None else 1
+        self.tail = head
+
+    def __iter__(self):
+        current_node = self.head
+        while current_node:
+            yield current_node
+            current_node = current_node.next_node
 
     def push(self, data: object) -> None:
         new_node = Node(data)
         new_node.set_next_node(self.head)
         self.head = new_node
+        if self.tail is None:
+            self.tail = self.head
+        self.length += 1
+
+    def append(self, data: object) -> None:
+        new_node = Node(data)
+        if self.head is None:
+            self.head = new_node
+            self.tail = new_node
+        else:
+            self.tail.set_next_node(new_node)
+            self.tail = new_node
         self.length += 1
 
     def recursive_reverse(self):
         if self.head is None:
             # empty list
-            # ? raise ValuError instead?
+            # ? raise ValueError instead?
             return
 
         def _recursive_helper(current_node: "Node", previous_node: "Node"):
@@ -84,7 +132,7 @@ class LinkedList:
         previous_node = None
         current_node = self.head
 
-        while current_node is not None:
+        while current_node:
             next_node = current_node.next_node  # store the original next node
             current_node.next_node = previous_node
             previous_node = current_node
@@ -92,7 +140,7 @@ class LinkedList:
 
 
 class Node:
-    def __init__(self, data: object = None):
+    def __init__(self, data: object):
         self.data = data
         self.next_node = None
 
