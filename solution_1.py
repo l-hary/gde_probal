@@ -7,6 +7,7 @@ esetén a szorzattal térjen vissza.
 Valósítsa meg azokat az algoritmusokat is, amelyek a negatív számokat is kezelik!
 """
 
+import copy
 import operator
 
 
@@ -15,7 +16,7 @@ def main() -> None:
         """"Provide two numbers separated by a valid operator. The number can be negative.
     Valid operators: +, -, * , /, <, >, =, <=, >="""
     )
-    string_to_solve = input("Input goes here: ")
+    string_to_solve = input("Input: ")
 
     number_map = {
         "1": 1,
@@ -41,12 +42,20 @@ def main() -> None:
     }
     validate_input(string_to_solve, number_map, operator_map)
 
-    original_ll = DoublyLinkedList()
+    original_input = DoublyLinkedList()
     for i in string_to_solve:
-        original_ll.append(i)
+        original_input.append(i)
 
-    print(parse_for_operators(original_ll, operator_map, number_map))
-    print(check_for_negatives(original_ll, operator_map, number_map))
+    operator_index = parse_for_operators(original_input, operator_map, number_map)
+    print(operator_index)
+    print(check_for_negatives(original_input, operator_map, number_map))
+
+    first, second = original_input.split(operator_index)
+    for node in first:
+        print(node.data)
+    print("")
+    for node in second:
+        print(node.data)
 
 
 def validate_input(
@@ -62,9 +71,8 @@ def validate_input(
 def check_for_negatives(data: "DoublyLinkedList", operators: dict, numbers: dict):
     first_is_negative = False
     second_is_negative = False
-    operator = None
 
-    for index, node in enumerate(data):
+    for node in data:
         if node.data == "-":
             if node.previous_node == None and node.next_node.data in numbers:
                 first_is_negative = True
@@ -79,7 +87,7 @@ def check_for_negatives(data: "DoublyLinkedList", operators: dict, numbers: dict
 # ? counterargument: separation of concerns, clean code
 def parse_for_operators(
     data: "DoublyLinkedList", operator_map: dict, numbers: dict
-) -> dict:
+) -> int:
     operator_index = None
     node: "Node"
     for index, node in enumerate(data):
@@ -144,10 +152,13 @@ class DoublyLinkedList:
                 second_list.head = current_node
                 second_list.tail = self.tail
                 second_list.length = self.length - position
+
+                # next step nulls the referencec in memory
+                first_list_new_tail = current_node.previous_node
                 second_list.head.previous_node = None
 
                 # update original list
-                self.tail = current_node.previous_node
+                self.tail = first_list_new_tail
                 self.tail.next_node = None
                 self.length = position
                 break
