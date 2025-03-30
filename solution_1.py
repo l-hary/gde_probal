@@ -7,7 +7,6 @@ esetén a szorzattal térjen vissza.
 Valósítsa meg azokat az algoritmusokat is, amelyek a negatív számokat is kezelik!
 """
 
-import copy
 import operator
 
 
@@ -18,7 +17,7 @@ def main() -> None:
     )
     string_to_solve = input("Input: ")
 
-    number_map = {
+    num_map = {
         "1": 1,
         "2": 2,
         "3": 3,
@@ -40,22 +39,34 @@ def main() -> None:
         ">": operator.gt,
         "=": operator.eq,
     }
-    validate_input(string_to_solve, number_map, operator_map)
+    validate_input(string_to_solve, num_map, operator_map)
 
     original_input = DoublyLinkedList()
     for i in string_to_solve:
         original_input.append(i)
 
-    operator_index = parse_for_operators(original_input, operator_map, number_map)
-    print(operator_index)
-    print(check_for_negatives(original_input, operator_map, number_map))
+    operator_index = parse_for_operators(original_input, operator_map, num_map)
+    negatives = check_for_negatives(original_input, operator_map, num_map)
+    first_half, second_half = original_input.split(operator_index)
+    operation = operator_map.get(second_half.pop(0).data)
 
-    first, second = original_input.split(operator_index)
-    for node in first:
-        print(node.data)
-    print("")
-    for node in second:
-        print(node.data)
+    # debug is for the weak
+    first_num = str_to_num(first_half, num_map, negatives[0])
+    second_num = str_to_num(second_half, num_map, negatives[1])
+    print(first_num)
+    print(second_num)
+    result = operation(first_num, second_num)
+    print(result)
+
+
+def str_to_num(input: "DoublyLinkedList", num_map: dict, negative: bool = False) -> int:
+    num = 0
+    if negative:
+        input.pop(0)
+    input.recursive_reverse()
+    for index, node in enumerate(input):
+        num += num_map[node.data] * 10**index
+    return num * -1 if negative else num
 
 
 def validate_input(
@@ -167,7 +178,7 @@ class DoublyLinkedList:
             position += 1
         return self, second_list
 
-    def pop(self, index) -> "Node":
+    def pop(self, index: int) -> "Node":
         if index < 0 or index >= self.length:
             raise IndexError("Index out of range")
 
