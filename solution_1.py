@@ -113,49 +113,48 @@ class DoublyLinkedList:
             current = current.next_node
         return current.data
 
-    def bisect(
-        self, index: int, pop=True
-    ) -> tuple["DoublyLinkedList", "DoublyLinkedList"]:
-        if index < 0 or index >= self.length - 1:
+    def split(self, index: int) -> tuple["DoublyLinkedList", "DoublyLinkedList"]:
+        if index < 0 or index >= self.length:
             raise IndexError("Index out of range")
 
         position = 0
         current_node = self.head
         second_list = DoublyLinkedList()
 
+        if index == self.length - 1:  # splitting at tail, second list is empty
+            return self, second_list
+
         while current_node:
             if position == index:
-                if current_node.previous_node == None:  # splitting at head
-                    if pop:
-                        second_list.head = current_node.next_node  # pop head node
-                        # originally points to self.head
-                        second_list.head.previous_node = None
-                    else:
-                        second_list.head = current_node  # reassign head node
-                    # clean up
+                if current_node.previous_node is None:  # splitting at head
+
+                    # create second list
+                    second_list.head = self.head
+                    second_list.tail = self.tail
+                    second_list.length = self.length
+
+                    # null original list
                     self.head = None
                     self.tail = None
                     self.length = 0
-                    second_list.length = 1
+                    break
 
-                else:
-                    if pop:
-                        second_list.head = current_node.next_node
-                        # -1 to account for pop removing an element
-                        second_list.length = self.length - position - 1
-                    else:
-                        second_list.head = current_node
-                        second_list.length = self.length - position
+                # not splitting at head
+                # create second list
+                second_list.head = current_node
+                second_list.tail = self.tail
+                second_list.length = self.length - position
+                second_list.head.previous_node = None
 
-                    # clean up
-                    second_list.tail = self.tail  # inherits the original tail
-                    self.tail = current_node.previous_node
-                    self.length = position
-                    current_node.previous_node.next_node = None
-                    second_list.head.previous_node = None
-                return (self, second_list)
-        current_node = current_node.next_node
-        position += 1
+                # update original list
+                self.tail = current_node.previous_node
+                self.tail.next_node = None
+                self.length = position
+                break
+
+            current_node = current_node.next_node
+            position += 1
+        return self, second_list
 
     def pop(self, index) -> "Node":
         if index < 0 or index >= self.length:
