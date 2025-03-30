@@ -11,9 +11,18 @@ import operator
 
 
 def main() -> None:
+
+    # TODO zero division error
+    # TODO handle return values for comparison operators
+    # TODO convert return value to str
+    # TODO add error handling for non-conforming inputs
+    # TODO strip spaces from input
+    # TODO separate DLL into a separate module
+    # TODO write tests
+
     print(
         """"Provide two numbers separated by a valid operator. The number can be negative.
-    Valid operators: +, -, * , /, <, >, =, <=, >="""
+    Valid operators: +, -, * , /, <, >, ="""
     )
     string_to_solve = input("Input: ")
 
