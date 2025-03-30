@@ -46,26 +46,26 @@ def main() -> None:
         original_input.append(i)
 
     operator_index = parse_for_operators(original_input, operator_map, num_map)
-    negatives = check_for_negatives(original_input, operator_map, num_map)
     first_half, second_half = original_input.split(operator_index)
     operation = operator_map.get(second_half.pop(0).data)
 
     # debug is for the weak
-    first_num = str_to_num(first_half, num_map, negatives[0])
-    second_num = str_to_num(second_half, num_map, negatives[1])
+    first_num = str_to_num(first_half, num_map)
+    second_num = str_to_num(second_half, num_map)
     print(first_num)
     print(second_num)
     result = operation(first_num, second_num)
     print(result)
 
 
-def str_to_num(input: "DoublyLinkedList", num_map: dict, negative: bool = False) -> int:
+def str_to_num(input: "DoublyLinkedList", num_map: dict) -> int:
     num = 0
-    if negative:
+    negative = False
+    if input[0] == "-":
         input.pop(0)
-    input.recursive_reverse()
-    for index, node in enumerate(input):
-        num += num_map[node.data] * 10**index
+        negative = True
+    for node in input:
+        num = (num * 10) + num_map[node.data]
     return num * -1 if negative else num
 
 
@@ -77,21 +77,6 @@ def validate_input(
     for char in data:
         if char not in number_map and char not in operator_map:
             raise ValueError("Character is not a number or operator. Exiting program.")
-
-
-def check_for_negatives(data: "DoublyLinkedList", operators: dict, numbers: dict):
-    first_is_negative = False
-    second_is_negative = False
-
-    for node in data:
-        if node.data == "-":
-            if node.previous_node == None and node.next_node.data in numbers:
-                first_is_negative = True
-            elif (
-                node.previous_node.data in operators and node.next_node.data in numbers
-            ):
-                second_is_negative = True
-    return first_is_negative, second_is_negative
 
 
 # ? could be done during the validate phase, to only iterate over the data once
