@@ -7,20 +7,270 @@ esetén a szorzattal térjen vissza.
 Valósítsa meg azokat az algoritmusokat is, amelyek a negatív számokat is kezelik!
 """
 
+import operator
+
 
 def main() -> None:
-    nums = input("what's the meaning of life?: ")
-    nums = [int(x) for x in nums.split()]
 
-    addition = sum(nums)
-    subtraction = nums[0] - nums[1]
-    comparison = 1 if nums[0] < nums[1] else -1 if nums[0] > nums[1] else 0
-    multiplication = nums[0] * nums[1]
+    # TODO zero division error
+    # TODO handle return values for comparison operators
+    # TODO convert return value to str
+    # TODO add error handling for non-conforming inputs
+    # TODO strip spaces from input
+    # TODO separate DLL into a separate module
+    # TODO write tests
 
-    print(f"Addition: {addition}")
-    print(f"Subtraction: {subtraction}")
-    print(f"Comparison: {comparison}")
-    print(f"Multiplication: {multiplication}")
+    print(
+        """"Provide two numbers separated by a valid operator. The number can be negative.
+    Valid operators: +, -, * , /, <, >, ="""
+    )
+    string_to_solve = input("Input: ")
+
+    num_map = {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9,
+        "0": 0,
+    }
+
+    operator_map = {
+        "+": operator.add,
+        "-": operator.sub,
+        "*": operator.mul,
+        "/": operator.truediv,
+        "<": operator.lt,
+        ">": operator.gt,
+        "=": operator.eq,
+    }
+    validate_input(string_to_solve, num_map, operator_map)
+
+    original_input = DoublyLinkedList()
+    for i in string_to_solve:
+        original_input.append(i)
+
+    operator_index = parse_for_operators(original_input, operator_map, num_map)
+    first_half, second_half = original_input.split(operator_index)
+    operation = operator_map.get(second_half.pop(0).data)
+
+    # debug is for the weak
+    first_num = str_to_num(first_half, num_map)
+    second_num = str_to_num(second_half, num_map)
+    print(first_num)
+    print(second_num)
+    result = operation(first_num, second_num)
+    print(result)
+
+
+def str_to_num(input: "DoublyLinkedList", num_map: dict) -> int:
+    num = 0
+    negative = False
+    if input[0] == "-":
+        input.pop(0)
+        negative = True
+    for node in input:
+        num = (num * 10) + num_map[node.data]
+    return num * -1 if negative else num
+
+
+def validate_input(
+    data: str,
+    number_map: dict,
+    operator_map: dict,
+):
+    for char in data:
+        if char not in number_map and char not in operator_map:
+            raise ValueError("Character is not a number or operator. Exiting program.")
+
+
+# ? could be done during the validate phase, to only iterate over the data once
+# ? counterargument: separation of concerns, clean code
+def parse_for_operators(
+    data: "DoublyLinkedList", operator_map: dict, numbers: dict
+) -> int:
+    operator_index = None
+    node: "Node"
+    for index, node in enumerate(data):
+        if node.data in operator_map and node.previous_node is not None:
+            if node.previous_node.data in numbers and (
+                node.next_node.data in numbers or node.next_node.data == "-"
+            ):
+                operator_index = index
+    return operator_index
+
+
+class DoublyLinkedList:
+    # ? use setters instead of direct assignment ?
+
+    def __init__(self, head: "Node" = None):
+        self.head = head
+        self.length = 0 if head is None else 1
+        self.tail = head
+
+    def __iter__(self):
+        current_node = self.head
+        while current_node:
+            yield current_node
+            current_node = current_node.next_node
+
+    def __getitem__(self, index):
+        if index < 0 or index >= self.length:
+            raise IndexError("Index out of range.")
+        current = self.head
+        for _ in range(index):
+            current = current.next_node
+        return current.data
+
+    def split(self, index: int) -> tuple["DoublyLinkedList", "DoublyLinkedList"]:
+        if index < 0 or index >= self.length:
+            raise IndexError("Index out of range")
+
+        position = 0
+        current_node = self.head
+        second_list = DoublyLinkedList()
+
+        if index == self.length - 1:  # splitting at tail, second list is empty
+            return self, second_list
+
+        while current_node:
+            if position == index:
+                if current_node.previous_node is None:  # splitting at head
+
+                    # create second list
+                    second_list.head = self.head
+                    second_list.tail = self.tail
+                    second_list.length = self.length
+
+                    # null original list
+                    self.head = None
+                    self.tail = None
+                    self.length = 0
+                    break
+
+                # not splitting at head
+                # create second list
+                second_list.head = current_node
+                second_list.tail = self.tail
+                second_list.length = self.length - position
+
+                # next step nulls the referencec in memory
+                first_list_new_tail = current_node.previous_node
+                second_list.head.previous_node = None
+
+                # update original list
+                self.tail = first_list_new_tail
+                self.tail.next_node = None
+                self.length = position
+                break
+
+            current_node = current_node.next_node
+            position += 1
+        return self, second_list
+
+    def pop(self, index: int) -> "Node":
+        if index < 0 or index >= self.length:
+            raise IndexError("Index out of range")
+
+        current_node = self.head
+        position = 0
+
+        while current_node:
+            if position == index:
+                if current_node.previous_node == None:  # check for head
+                    self.head = current_node.next_node
+                    if self.head:  # at least one element remains in the list
+                        self.head.previous_node = None  # update head pointer
+                    else:  # empty list
+                        self.tail = None
+
+                elif current_node.next_node is None:  # popping the tail
+                    self.tail = current_node.previous_node
+                    self.tail.next_node = None  # update tail pointer
+
+                else:
+                    current_node.next_node.previous_node = current_node.previous_node
+                    current_node.previous_node.next_node = current_node.next_node
+
+                # clean up the removed node
+                current_node.previous_node = None
+                current_node.next_node = None
+                self.length -= 1
+                return current_node
+
+    def push(self, data: object) -> None:
+        new_node = Node(data)
+        new_node.next_node = self.head
+        new_node.previous_node = None
+
+        if self.head is None:
+            self.tail = new_node
+        else:
+            self.head.previous_node = new_node
+        self.head = new_node
+        self.length += 1
+
+    def append(self, data: object) -> None:
+        new_node = Node(data)
+
+        if self.head is None:
+            new_node.previous_node = None
+            self.head = new_node
+            self.tail = new_node
+        else:
+            new_node.previous_node = self.tail
+            self.tail.next_node = new_node
+            self.tail = new_node
+        self.length += 1
+
+    def recursive_reverse(self):
+        if self.head is None:
+            # empty list
+            # ? raise ValueError instead?
+            return
+
+        def _recursive_helper(current_node: "Node"):
+
+            current_node.next_node, current_node.previous_node = (
+                current_node.previous_node,
+                current_node.next_node,
+            )
+
+            if current_node.previous_node is None:  # next_node before swappping
+                self.tail = self.head
+                self.head = current_node
+                return
+
+            _recursive_helper(current_node.previous_node)  # next_node before swapping
+
+        _recursive_helper(self.head)
+
+    def iterative_reverse(self):
+        if self.head is None:
+            # empty list
+            # ? raise ValuError instead?
+            return
+
+        current_node = self.head
+
+        while current_node:
+            next = current_node.next_node
+            current_node.next_node = current_node.previous_node
+            current_node.previous_node = next
+            current_node = next
+
+        self.head, self.tail = self.tail, self.head
+
+
+class Node:
+    def __init__(self, data: object):
+        self.data = data
+        self.next_node = None
+        self.previous_node = None
 
 
 if __name__ == "__main__":
