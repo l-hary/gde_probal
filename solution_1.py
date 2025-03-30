@@ -11,7 +11,6 @@ import operator
 
 
 def main() -> None:
-    #! operator.le, operator.ge not supported
     print(
         """"Provide two numbers separated by a valid operator. The number can be negative.
     Valid operators: +, -, * , /, <, >, =, <=, >="""
@@ -39,8 +38,6 @@ def main() -> None:
         "<": operator.lt,
         ">": operator.gt,
         "=": operator.eq,
-        # "<=": operator.le, # TODO
-        # ">=": operator.ge,
     }
     validate_input(string_to_solve, number_map, operator_map)
 
@@ -48,11 +45,7 @@ def main() -> None:
     for i in string_to_solve:
         original_ll.append(i)
 
-    operators = parse_for_operators(original_ll, operator_map)
-
-    for key in operators.keys():
-        print(original_ll[key])
-
+    print(parse_for_operators(original_ll, operator_map, number_map))
     print(check_for_negatives(original_ll, operator_map, number_map))
 
 
@@ -66,13 +59,12 @@ def validate_input(
             raise ValueError("Character is not a number or operator. Exiting program.")
 
 
-def check_for_negatives(
-    original_ll: "DoublyLinkedList", operators: dict, numbers: dict
-):
+def check_for_negatives(data: "DoublyLinkedList", operators: dict, numbers: dict):
     first_is_negative = False
     second_is_negative = False
+    operator = None
 
-    for node in original_ll:
+    for index, node in enumerate(data):
         if node.data == "-":
             if node.previous_node == None and node.next_node.data in numbers:
                 first_is_negative = True
@@ -85,13 +77,18 @@ def check_for_negatives(
 
 # ? could be done during the validate phase, to only iterate over the data once
 # ? counterargument: separation of concerns, clean code
-def parse_for_operators(data: "DoublyLinkedList", operator_map: dict) -> dict:
-    operators = {}
+def parse_for_operators(
+    data: "DoublyLinkedList", operator_map: dict, numbers: dict
+) -> dict:
+    operator_index = None
     node: "Node"
     for index, node in enumerate(data):
-        if node.data in operator_map:
-            operators[index] = node.data
-    return operators
+        if node.data in operator_map and node.previous_node is not None:
+            if node.previous_node.data in numbers and (
+                node.next_node.data in numbers or node.next_node.data == "-"
+            ):
+                operator_index = index
+    return operator_index
 
 
 class DoublyLinkedList:
@@ -115,6 +112,80 @@ class DoublyLinkedList:
         for _ in range(index):
             current = current.next_node
         return current.data
+
+    def bisect(
+        self, index: int, pop=True
+    ) -> tuple["DoublyLinkedList", "DoublyLinkedList"]:
+        if index < 0 or index >= self.length - 1:
+            raise IndexError("Index out of range")
+
+        position = 0
+        current_node = self.head
+        second_list = DoublyLinkedList()
+
+        while current_node:
+            if position == index:
+                if current_node.previous_node == None:  # splitting at head
+                    if pop:
+                        second_list.head = current_node.next_node  # pop head node
+                        # originally points to self.head
+                        second_list.head.previous_node = None
+                    else:
+                        second_list.head = current_node  # reassign head node
+                    # clean up
+                    self.head = None
+                    self.tail = None
+                    self.length = 0
+                    second_list.length = 1
+
+                else:
+                    if pop:
+                        second_list.head = current_node.next_node
+                        # -1 to account for pop removing an element
+                        second_list.length = self.length - position - 1
+                    else:
+                        second_list.head = current_node
+                        second_list.length = self.length - position
+
+                    # clean up
+                    second_list.tail = self.tail  # inherits the original tail
+                    self.tail = current_node.previous_node
+                    self.length = position
+                    current_node.previous_node.next_node = None
+                    second_list.head.previous_node = None
+                return (self, second_list)
+        current_node = current_node.next_node
+        position += 1
+
+    def pop(self, index) -> "Node":
+        if index < 0 or index >= self.length:
+            raise IndexError("Index out of range")
+
+        current_node = self.head
+        position = 0
+
+        while current_node:
+            if position == index:
+                if current_node.previous_node == None:  # check for head
+                    self.head = current_node.next_node
+                    if self.head:  # at least one element remains in the list
+                        self.head.previous_node = None  # update head pointer
+                    else:  # empty list
+                        self.tail = None
+
+                elif current_node.next_node is None:  # popping the tail
+                    self.tail = current_node.previous_node
+                    self.tail.next_node = None  # update tail pointer
+
+                else:
+                    current_node.next_node.previous_node = current_node.previous_node
+                    current_node.previous_node.next_node = current_node.next_node
+
+                # clean up the removed node
+                current_node.previous_node = None
+                current_node.next_node = None
+                self.length -= 1
+                return current_node
 
     def push(self, data: object) -> None:
         new_node = Node(data)
