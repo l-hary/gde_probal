@@ -12,7 +12,6 @@ import operator
 
 def main() -> None:
 
-    # TODO zero division error
     # TODO handle return values for comparison operators
     # TODO convert return value to str
     # TODO add error handling for non-conforming inputs
