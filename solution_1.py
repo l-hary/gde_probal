@@ -22,7 +22,6 @@ def main() -> None:
         """"Provide two numbers separated by a valid operator. The number can be negative.
     Valid operators: +, -, * , /, <, >, ="""
     )
-
     string_to_solve = input("Input: ")
     
     num_map = {
@@ -47,7 +46,6 @@ def main() -> None:
         ">": lambda a, b: -1 if a < b else 1 if a > b else 0,
         "=": lambda a, b: 0 if a == b else 1 if a < b else -1,
     }
-
     validate_input(string_to_solve, num_map, operator_map)
 
     original_input = DoublyLinkedList()
@@ -71,7 +69,6 @@ def main() -> None:
 
     result = operation(first_num, second_num)
     print(result)
-    return result
 
 
 def str_to_num(input: "DoublyLinkedList", num_map: dict) -> int:
@@ -271,7 +268,6 @@ class DoublyLinkedList:
             current_node = next
 
         self.head, self.tail = self.tail, self.head
-
 
 class Node:
     def __init__(self, data: object):
