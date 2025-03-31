@@ -140,25 +140,21 @@ class DoublyLinkedList:
         while current_node:
             if position == index:
                 if current_node.previous_node is None:  # splitting at head
-
-                    # create second list
                     second_list.head = self.head
                     second_list.tail = self.tail
                     second_list.length = self.length
 
-                    # null original list
                     self.head = None
                     self.tail = None
                     self.length = 0
                     break
 
                 # not splitting at head
-                # create second list
                 second_list.head = current_node
                 second_list.tail = self.tail
                 second_list.length = self.length - position
 
-                # next step nulls the referencec in memory
+                # next step nulls the reference in memory
                 first_list_new_tail = current_node.previous_node
                 second_list.head.previous_node = None
 
@@ -234,12 +230,12 @@ class DoublyLinkedList:
             return
 
         def _recursive_helper(current_node: "Node"):
-
             current_node.next_node, current_node.previous_node = (
                 current_node.previous_node,
                 current_node.next_node,
             )
 
+            # base case, at the end of list
             if current_node.previous_node is None:  # next_node before swappping
                 self.tail = self.head
                 self.head = current_node
@@ -252,16 +248,16 @@ class DoublyLinkedList:
     def iterative_reverse(self):
         if self.head is None:
             # empty list
-            # ? raise ValuError instead?
+            # ? raise ValueError instead?
             return
 
         current_node = self.head
-
         while current_node:
-            next = current_node.next_node
-            current_node.next_node = current_node.previous_node
-            current_node.previous_node = next
-            current_node = next
+            current_node.next_node, current_node.previous_node = (
+                current_node.previous_node,
+                current_node.next_node,
+            )
+            current_node = current_node.previous_node  # next_node before swapping
 
         self.head, self.tail = self.tail, self.head
 
