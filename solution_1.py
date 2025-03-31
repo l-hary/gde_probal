@@ -58,11 +58,17 @@ def main() -> None:
     first_half, second_half = original_input.split(operator_index)
     operation = operator_map.get(second_half.pop(0).data)
 
-    # debug is for the weak
+    # debug is for the weak <- print debug for president
     first_num = str_to_num(first_half, num_map)
     second_num = str_to_num(second_half, num_map)
     print(first_num)
     print(second_num)
+
+    # Handle division by zero
+    if operation == operator.truediv and second_num == 0:
+        print("Zero division error, exiting program")
+        exit(0)
+
     result = operation(first_num, second_num)
     print(result)
 
