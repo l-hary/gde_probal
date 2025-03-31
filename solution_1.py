@@ -23,7 +23,7 @@ def main() -> None:
     Valid operators: +, -, * , /, <, >, ="""
     )
     string_to_solve = input("Input: ")
-    
+
     num_map = {
         "1": 1,
         "2": 2,
