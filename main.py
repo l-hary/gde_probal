@@ -33,7 +33,6 @@ def main() -> None:
         ZeroDivisionError: If division by zero is attempted.
     """
     # TODO handle stacked operators => return error
-    # TODO write tests
 
     print(
         """"Provide two numbers separated by a valid operator. The number can be negative.
