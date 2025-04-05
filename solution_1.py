@@ -12,9 +12,6 @@ import operator
 
 def main() -> None:
 
-    # TODO convert return value to str
-    # TODO add error handling for non-conforming inputs
-    # TODO strip spaces from input
     # TODO separate DLL into a separate module
     # TODO write tests
 
@@ -22,7 +19,8 @@ def main() -> None:
         """"Provide two numbers separated by a valid operator. The number can be negative.
     Valid operators: +, -, * , /, <, >, ="""
     )
-    string_to_solve = input("Input: ")
+    original_input = input("Input: ")
+    cleaned_input = "".join(original_input.split())
 
     num_map = {
         "1": 1,
@@ -46,10 +44,10 @@ def main() -> None:
         ">": lambda a, b: -1 if a < b else 1 if a > b else 0,
         "=": lambda a, b: 0 if a == b else 1 if a < b else -1,
     }
-    validate_input(string_to_solve, num_map, operator_map)
+    validate_input(cleaned_input, num_map, operator_map)
 
     original_input = DoublyLinkedList()
-    for i in string_to_solve:
+    for i in cleaned_input:
         original_input.append(i)
 
     operator_index = parse_for_operators(original_input, operator_map, num_map)
@@ -68,7 +66,7 @@ def main() -> None:
         exit(0)
 
     result = operation(first_num, second_num)
-    print(result)
+    print(str(result))
 
 
 def str_to_num(input: "DoublyLinkedList", num_map: dict) -> int:
@@ -265,11 +263,13 @@ class DoublyLinkedList:
 
         self.head, self.tail = self.tail, self.head
 
+
 class Node:
     def __init__(self, data: object):
         self.data = data
         self.next_node = None
         self.previous_node = None
+
 
 if __name__ == "__main__":
     main()
