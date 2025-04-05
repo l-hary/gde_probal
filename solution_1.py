@@ -12,6 +12,7 @@ import operator
 
 def main() -> None:
 
+    # TODO handle stacked operators => return error
     # TODO separate DLL into a separate module
     # TODO write tests
 
@@ -62,20 +63,19 @@ def main() -> None:
 
     # Handle division by zero
     if operation == operator.truediv and second_num == 0:
-        print("Zero division error, exiting program")
-        exit(0)
+        raise ZeroDivisionError("Can't divide by zero")
 
     result = operation(first_num, second_num)
     print(str(result))
 
 
-def str_to_num(input: "DoublyLinkedList", num_map: dict) -> int:
+def str_to_num(input_string: "DoublyLinkedList", num_map: dict) -> int:
     num = 0
     negative = False
-    if input[0] == "-":
-        input.pop(0)
+    if input_string[0] == "-":
+        input_string.pop(0)
         negative = True
-    for node in input:
+    for node in input_string:
         num = (num * 10) + num_map[node.data]
     return num * -1 if negative else num
 
@@ -170,7 +170,7 @@ class DoublyLinkedList:
             position += 1
         return self, second_list
 
-    def pop(self, index: int) -> "Node":
+    def pop(self, index: int) -> "Node | None":
         if index < 0 or index >= self.length:
             raise IndexError("Index out of range")
 
@@ -179,7 +179,7 @@ class DoublyLinkedList:
 
         while current_node:
             if position == index:
-                if current_node.previous_node == None:  # check for head
+                if current_node.previous_node is None:  # check for head
                     self.head = current_node.next_node
                     if self.head:  # at least one element remains in the list
                         self.head.previous_node = None  # update head pointer
@@ -199,6 +199,9 @@ class DoublyLinkedList:
                 current_node.next_node = None
                 self.length -= 1
                 return current_node
+            current_node = current_node.next_node
+            position += 1
+        return None
 
     def push(self, data: object) -> None:
         new_node = Node(data)
